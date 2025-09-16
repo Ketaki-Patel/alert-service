@@ -23,6 +23,7 @@ public class AlertsController {
     public Mono<ResponseEntity<Void>> evaluateReading(@Valid @RequestBody Mono<Reading> readingMono) {
         return readingMono.flatMap(reading -> {
             UUID readingId = reading.getReadingId();
+            log.info("vital reading forwarded from vital service: " +  reading);
 
             // Ignore duplicates
             if (repository.findByReadingId(readingId).isPresent()) {
