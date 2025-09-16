@@ -2,7 +2,7 @@ package com.example.alerts.controller;
 import com.example.alerts.dto.Reading;
 import com.example.alerts.model.Alert;
 import com.example.alerts.repository.AlertRepository;
-import jakarta.validation.Valid;
+import com.example.alerts.service.ValidatorService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -18,10 +18,13 @@ import java.util.UUID;
 public class AlertsController {
 
     private final AlertRepository repository;
+    private final ValidatorService validatorService;
 
     @PostMapping("/evaluate")
-    public Mono<ResponseEntity<Void>> evaluateReading(@Valid @RequestBody Mono<Reading> readingMono) {
-        return readingMono.flatMap(reading -> {
+    public Mono<ResponseEntity<Void>> evaluateReading(@RequestBody Mono<Reading> readingMono) {
+        return readingMono
+                .doOnNext(validatorService::validate) //@Valid can't be used on Mono<Reading> so Manual validation required before processing
+                .flatMap(reading -> {
             UUID readingId = reading.getReadingId();
             log.info("vital reading forwarded from vital service: " +  reading);
 
